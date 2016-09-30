@@ -1,0 +1,86 @@
+---
+
+- hosts: localhost
+  gather_facts: false
+
+  roles:
+
+    - role: admission_token
+      tags:
+        - token
+
+  tasks:
+
+    - debug:
+        var: admission_token
+      tags:
+        - token
+
+- hosts: "{{ hostvars.localhost.groups.master | join(',') }}"
+
+  become: true
+
+  roles:
+
+    - role: kubeadm_install
+      tags:
+        - repo
+        - master
+        - nodes          
+
+  tasks:
+
+    - name: Initialize master
+      command: kubeadm init --token {{ hostvars.localhost.admission_token }}
+      args:
+        creates: /etc/kubernetes/pki
+      ignore_errors: true
+      tags:
+        - master
+        - init
+
+      # Not 100% sure that the creates clause is correct
+
+- hosts: "{{ hostvars.localhost.groups.nodes | join(',') }}"
+
+  become: true
+
+  roles:
+
+    - role: kubeadm_install
+      tags:
+        - repo
+        - master
+        - nodes    
+
+  tasks:
+
+    - set_fact:
+        master_ip_address: '{{ master_ip_address_configured }}'
+      when: master_ip_address_configured is defined
+
+    - set_fact:
+        master_ip_address: "{{ hostvars[groups['master'][0]]['ansible_default_ipv4']['address'] }}"
+      when: master_ip_address_configured is not defined
+
+    - name: Join nodes to cluster
+      command: kubeadm join --token {{ hostvars.localhost.admission_token }} {{  master_ip_address }}
+      args:
+        creates: /etc/kubernetes/kubelet.conf
+      tags:
+        - nodes
+        - join
+
+      # Not 100% sure that the creates clause is correct
+
+- hosts: "{{ hostvars.localhost.groups.master | join(',') }}"
+
+  become: true
+
+  tasks:
+
+    - name: Install pod network
+      command: kubectl apply -f https://git.io/weave-kube
+      tags:
+        - master
+        - network

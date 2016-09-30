@@ -1,0 +1,13 @@
+---
+
+- name: Generate admission_token
+  command: python -c 'import random; print "%0x.%0x" % (random.SystemRandom().getrandbits(3*8), random.SystemRandom().getrandbits(8*8))'
+  register: token_raw
+
+- set_fact:
+    admission_token: '{{ token_raw.stdout }}'
+
+- name: Save token as tokens/cluster_name.yml
+  copy:
+    dest: tokens/{{ hostvars[groups['master'][0]]['cluster_name'] }}.yml
+    content: "saved_token: {{ admission_token }}"

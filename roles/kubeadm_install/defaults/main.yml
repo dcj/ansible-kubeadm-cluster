@@ -1,0 +1,4 @@
+---
+# defaults file for kubeadm_install
+
+kubeadm_services: []

@@ -1,0 +1,14 @@
+---
+
+- name: stat tokens/cluster_name.yml
+  stat:
+    path:  tokens/{{ hostvars[groups['master'][0]]['cluster_name'] }}.yml
+  register: token_file
+
+- include: retrieve.yml
+  when: token_file.stat.exists
+
+- include: generate.yml
+  when: not token_file.stat.exists
+
+

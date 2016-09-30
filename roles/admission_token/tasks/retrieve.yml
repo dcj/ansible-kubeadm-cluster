@@ -1,0 +1,7 @@
+---
+
+- include_vars: tokens/{{ hostvars[groups['master'][0]]['cluster_name'] }}.yml
+
+- set_fact:
+    admission_token: '{{ saved_token }}'
+

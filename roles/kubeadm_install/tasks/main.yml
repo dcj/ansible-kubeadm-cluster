@@ -1,0 +1,13 @@
+---
+# tasks file for kubeadm_install
+
+- name: Include distribution specifc vars
+  include_vars: '{{ ansible_distribution }}.yml'
+
+- name: CentOS 7 install
+  include: CentOS.yml
+  when: ansible_distribution == 'CentOS' and ansible_distribution_major_version == '7'
+
+- name: Ubuntu 16 install
+  include: Ubuntu.yml
+  when: ansible_distribution == 'Ubuntu' and ansible_distribution_major_version == '16'
