@@ -64,7 +64,7 @@ I don't yet understand much or anything about the Kubernetes pod network "Weave 
 
 ## Acknowlegements
 
-* Huge kudos to the authers of kubeadm and its [getting started guide](http://kubernetes.io/docs/getting-started-guides/kubeadm/)
+* Huge kudos to the authors of kubeadm and [its getting started guide](http://kubernetes.io/docs/getting-started-guides/kubeadm/)
 * Joe Beda [provided the code to generate tokens, and how to feed a token into kubeadm init](https://github.com/upmc-enterprises/kubeadm-aws/issues/1)
 * @marun pointed me to the documentation about how to access the master remotely via kubectl
 

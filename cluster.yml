@@ -30,6 +30,8 @@
 
   tasks:
 
+    # Implements Step 2 of http://kubernetes.io/docs/getting-started-guides/kubeadm/
+
     - name: Initialize master
       command: kubeadm init --token {{ hostvars.localhost.admission_token }}
       args:
@@ -55,6 +57,8 @@
 
   tasks:
 
+    # Implements Step 3 of http://kubernetes.io/docs/getting-started-guides/kubeadm/
+
     - set_fact:
         master_ip_address: '{{ master_ip_address_configured }}'
       when: master_ip_address_configured is defined
@@ -78,6 +82,8 @@
   become: true
 
   tasks:
+
+    # Implements Step 4 of http://kubernetes.io/docs/getting-started-guides/kubeadm/
 
     - name: Install pod network
       command: kubectl apply -f https://git.io/weave-kube
