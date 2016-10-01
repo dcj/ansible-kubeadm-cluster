@@ -36,10 +36,14 @@
       command: kubeadm init --token {{ hostvars.localhost.admission_token }}
       args:
         creates: /etc/kubernetes/pki
+      register: master_init
       ignore_errors: true
       tags:
         - master
         - init
+
+    - debug:
+        var: master_init.stdout_lines
 
       # Not 100% sure that the creates clause is correct
 
@@ -71,9 +75,14 @@
       command: kubeadm join --token {{ hostvars.localhost.admission_token }} {{  master_ip_address }}
       args:
         creates: /etc/kubernetes/kubelet.conf
+      register: node_join
+      ignore_errors: true
       tags:
         - nodes
         - join
+
+    - debug:
+        var: node_join.stdout_lines
 
       # Not 100% sure that the creates clause is correct
 
@@ -87,6 +96,19 @@
 
     - name: Install pod network
       command: kubectl apply -f https://git.io/weave-kube
+      register: pod_network
       tags:
         - master
         - network
+
+    - debug:
+        var: pod_network.stdout_lines        
+
+    - name: Copy
+      fetch:
+        src: /etc/kubernetes/admin.conf
+        dest: remotes/{{ hostvars[groups['master'][0]]['cluster_name'] }}.conf
+        flat: true
+      tags:
+        - master
+        - remote

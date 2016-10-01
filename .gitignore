@@ -1,2 +1,3 @@
 tokens/*.yml
 cfg/*
+remotes/*.conf

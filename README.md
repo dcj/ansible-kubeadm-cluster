@@ -12,6 +12,7 @@ This playbook assumes:
 * Full network connectivty exists between the machines, and the Ansible control machine (e.g. your computer)
 * The machines have access to the Internet
 * You are Ansible-knowledgable, can ssh into all the machines, and can sudo with no password prompt
+* Make sure your machines are time-synchronized, and that you understand their firewall configuration and status
 
 ## Configuration
 
@@ -44,23 +45,27 @@ The guide then provides examples you can run to test your cluster.
 If you want to interact with your cluster via the kubectl command on your own machine (and why wouldn't you?), take note of the last note in the "Limitations" section of the guide:
 
 ```
-There is not yet an easy way to generate a kubeconfig file which can be used to authenticate to the cluster remotely with kubectl on, for example, your workstation.
-Workaround: copy the kubelet’s kubeconfig from the master: use scp root@<master>:/etc/kubernetes/admin.conf . and then e.g. kubectl --kubeconfig ./admin.conf get nodes from your workstation.
+         There is not yet an easy way to generate a kubeconfig file which can be used to authenticate to the cluster remotely with kubectl on, 
+         for example, your workstation. Workaround: copy the kubelet’s kubeconfig from the master: use 
+           scp root@<master>:/etc/kubernetes/admin.conf . 
+         and then e.g. kubectl --kubeconfig ./admin.conf get nodes from your workstation.
 ```
+
+The playbook retrieves the admin.conf file, and stores it locally as ```./remotes/cluster_name.conf``` to facilitate remote kubectl access.
 
 ## Idempotency
 
-* I belive I have made admission token generation idempotent. Generated tokens are stored in ./tokens/cluster_name.yml, and reused on subsequent playbook runs
+* I belive I have made admission token generation idempotent. Generated tokens are stored in ```./tokens/cluster_name.yml```, and reused on subsequent playbook runs
 * I'm not sure how to know that the init and join operations have successfully completed, I've tried to base it on files/directories that are created, but not yet certain that is correct.
 * It seems like re-issuing the ```kubectl apply -f https://git.io/weave-kube``` is harmless, but again, I'm not certain...
 
 
 ## Notes and Caveats
 
-This playbook worked for me (once or twice!), but is not extensively tested.
-I have successfully run this to completion on a 3 machine Ubuntu setup, and only got as far as testing installation of the master for CentOS (I ran out of machines to test on!)
-
-I don't yet understand much or anything about the Kubernetes pod network "Weave Net" the guide and this playbook installs.  Be forewarned!
+* This playbook is under active development, but is not extensively tested.
+* I have successfully run this to completion on a 3 machine Ubuntu setup, it basically worked the first time.
+* I haven't yet succeeded in getting a cluster working perfectly on Centos 7. I spent all day today (2016-09-30) trying to do so, and ran into all kinds of issues, stay tuned for updates.
+* I don't yet understand much or anything about the Kubernetes pod network "Weave Net" the guide and this playbook installs.  Be forewarned!
 
 ## Acknowlegements
 
