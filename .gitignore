@@ -1,3 +1,4 @@
 tokens/*.yml
 cfg/*
 remotes/*.conf
+.DS_Store

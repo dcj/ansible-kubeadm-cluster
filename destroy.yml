@@ -1,0 +1,81 @@
+---
+
+- hosts: localhost
+
+- hosts: "{{ hostvars.localhost.groups.nodes | join(',') }}"
+
+  user: ds
+
+  become: true
+
+  vars:
+
+    kubeadm_packages:
+      - docker.io
+      - kubelet
+      - kubeadm
+      - kubectl
+      - kubernetes-cni
+
+  tasks:
+
+    - name: Reset kubeadm
+      command: /usr/bin/kubeadm reset
+      ignore_errors: true
+
+    - name: Remove packages
+      apt:
+        name: '{{ kubeadm_packages | list }}'
+        state: absent
+        update_cache: true
+
+    - name: Remove kubernetes directorys
+      file:
+        path: '{{ item }}'
+        state: absent
+      with_items:
+        - /etc/kubernetes
+        - /var/lib/kubelet
+        - /run/kubernetes
+      ignore_errors: true
+
+- hosts: "{{ hostvars.localhost.groups.master | join(',') }}"
+
+  user: ds
+
+  become: true
+
+  vars:
+
+    kubeadm_packages:
+      - docker.io
+      - kubelet
+      - kubeadm
+      - kubectl
+      - kubernetes-cni  
+
+  tasks:
+
+    - name: Reset kubeadm
+      command: /usr/bin/kubeadm reset    
+      ignore_errors: true
+      
+    - name: Remove packages
+      apt:
+        name: '{{ kubeadm_packages | list }}'
+        state: absent
+        update_cache: true
+
+    - name: Remove kubernetes directorys
+      file:
+        path: '{{ item }}'
+        state: absent
+      with_items:
+        - /etc/kubernetes
+        - /var/lib/kubelet
+        - /run/kubernetes
+        - /var/lib/etcd
+      ignore_errors: true        
+
+        
+        
