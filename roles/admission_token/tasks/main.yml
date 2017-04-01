@@ -2,7 +2,7 @@
 
 - name: stat tokens/cluster_name.yml
   stat:
-    path:  tokens/{{ hostvars[groups['master'][0]]['cluster_name'] }}.yml
+    path:  cfg/{{ cluster_name }}/token.yml
   register: token_file
 
 - include: retrieve.yml

@@ -7,7 +7,11 @@
 - set_fact:
     admission_token: '{{ token_raw.stdout }}'
 
+- file:
+    path: cfg/{{ cluster_name }}
+    state: directory
+
 - name: Save token as tokens/cluster_name.yml
   copy:
-    dest: tokens/{{ hostvars[groups['master'][0]]['cluster_name'] }}.yml
-    content: "saved_token: {{ admission_token }}"
+    dest: cfg/{{ cluster_name }}/token.yml
+    content: "admission_token: {{ admission_token }}"

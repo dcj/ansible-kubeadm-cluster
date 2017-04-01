@@ -2,32 +2,26 @@
 # Example Inventory file to describe/configure a Kubernetes cluster via kubeadm
 #
 
-[cluster]
+[k8s_test]
 
-[cluster:children]
-master
-nodes
+[k8s_test:children]
+k8s_test_master
+k8s_test_node
 #
-# The cluster group contains two subgroups: master and nodes
-#
-
-[cluster:vars]
-cluster_name=kubeadm_1
-#
-# cluster_name is used to store and retrieve the admission_token
+# The cluster group contains two subgroups: master and node
 #
 
-[master]
+[k8s_test_master]
 master.example.com
 #
 # The master group should have only ONE FQDN defined/specified
 #
 
-[master:vars]
+[k8s_test_master:vars]
 # master_ip_address_configured=1.2.3.4
 # If you need to specify a specific ip address for the master, uncomment the above and edit
 
-[nodes]
+[k8s_test_node]
 node1.example.com
 node2.example.com
 #

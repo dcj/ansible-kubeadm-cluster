@@ -16,9 +16,17 @@
       tags:
         - token
 
-- hosts: "{{ hostvars.localhost.groups.master | join(',') }}"
+
+- hosts: "{{ cluster_name }}_master"
+
+  user: ds
 
   become: true
+
+  pre_tasks:
+
+    - name: Read token from file
+      include_vars: cfg/{{ cluster_name }}/token.yml
 
   roles:
 
@@ -33,7 +41,7 @@
     # Implements Step 2 of http://kubernetes.io/docs/getting-started-guides/kubeadm/
 
     - name: Initialize master
-      command: kubeadm init --token {{ hostvars.localhost.admission_token }}
+      command: kubeadm init --token {{ admission_token }}
       args:
         creates: /etc/kubernetes/pki
       register: master_init
@@ -42,14 +50,33 @@
         - master
         - init
 
-    - debug:
-        var: master_init.stdout_lines
-
       # Not 100% sure that the creates clause is correct
 
-- hosts: "{{ hostvars.localhost.groups.nodes | join(',') }}"
+- hosts: localhost
+
+  tasks:
+
+    - set_fact:
+        cluster_master: "{{ groups[ cluster_name + '_master' ][0] }}"
+
+    - name: Save master_ip_address
+      copy:
+        dest: cfg/{{ cluster_name }}/master_ip_address.yml
+        content: "master_ip_address: {{ hostvars[ cluster_master ]['ansible_default_ipv4']['address'] }}"
+
+- hosts: "{{ cluster_name }}_node"
+
+  user: ds
 
   become: true
+
+  pre_tasks:
+
+    - name: Read token from file
+      include_vars: cfg/{{ cluster_name }}/token.yml
+      
+    - name: Read master_ip_address from file
+      include_vars: cfg/{{ cluster_name }}/master_ip_address.yml
 
   roles:
 
@@ -63,16 +90,16 @@
 
     # Implements Step 3 of http://kubernetes.io/docs/getting-started-guides/kubeadm/
 
-    - set_fact:
-        master_ip_address: '{{ master_ip_address_configured }}'
-      when: master_ip_address_configured is defined
+    - debug:
+        var: admission_token
+      run_once: true
 
-    - set_fact:
-        master_ip_address: "{{ hostvars[groups['master'][0]]['ansible_default_ipv4']['address'] }}"
-      when: master_ip_address_configured is not defined
+    - debug:
+        var: master_ip_address
+      run_once: true
 
     - name: Join nodes to cluster
-      command: kubeadm join --token {{ hostvars.localhost.admission_token }} {{  master_ip_address }}
+      command: kubeadm join --token {{ admission_token }} {{ master_ip_address }}:6443
       args:
         creates: /etc/kubernetes/kubelet.conf
       register: node_join
@@ -86,7 +113,9 @@
 
       # Not 100% sure that the creates clause is correct
 
-- hosts: "{{ hostvars.localhost.groups.master | join(',') }}"
+- hosts: "{{ cluster_name }}_master"
+
+  user: ds
 
   become: true
 
@@ -95,11 +124,12 @@
     # Implements Step 4 of http://kubernetes.io/docs/getting-started-guides/kubeadm/
 
     - name: Install pod network
-      command: kubectl apply -f https://git.io/weave-kube
+      command: /usr/bin/kubectl --kubeconfig /etc/kubernetes/admin.conf apply -f https://git.io/weave-kube-1.6
       register: pod_network
       tags:
         - master
         - network
+      ignore_errors: true
 
     - debug:
         var: pod_network.stdout_lines        
@@ -107,7 +137,7 @@
     - name: Copy
       fetch:
         src: /etc/kubernetes/admin.conf
-        dest: remotes/{{ hostvars[groups['master'][0]]['cluster_name'] }}.conf
+        dest: cfg/{{ cluster_name }}/admin.conf
         flat: true
       tags:
         - master
