@@ -1,6 +1,7 @@
-# Pass in cluster_name
-# WARNINGL This is untested in its current form.  The specific commands are tested/work, but the parsing and display of results is untested...
-# Todo: Add support for Heapster
+#
+# Example invocation:
+#     ansible-playbook cluster-infra.yml -e "cluster_name=foo"
+#
 ---
 
 - hosts: localhost
@@ -10,25 +11,38 @@
   tasks:
 
     - name: Install Dashboard
-      command: kubectl -o json --kubeconfig cfg/{{ cluster_name }}/admin.conf create -f https://rawgit.com/kubernetes/dashboard/master/src/deploy/kubernetes-dashboard.yaml
+      command: kubectl --kubeconfig cfg/{{ cluster_name }}/admin.conf apply -f https://rawgit.com/kubernetes/dashboard/master/src/deploy/kubernetes-dashboard.yaml
       register: dashboard_raw
 
     - set_fact:
-        dashboard_output: "{{ dashboard_raw.stdout|from_json }}"
-
-    - name: Install WeaveScope
-      command: kubectl -o json --kubeconfig cfg/{{ cluster_name }}/admin.conf apply -f https://cloud.weave.works/launch/k8s/weavescope.yaml
-      register: weavescope_raw
-
-    - set_fact:
-        weavescope_output: "{{ weavescope_raw.stdout|from_json }}"
+        dashboard_output: "{{ dashboard_raw.stdout_lines }}"
 
     - debug:
         var: dashboard_output
+      when: dashboard_output is defined
+
+    - name: RBAC for Dashboard
+      command: kubectl --kubeconfig cfg/{{ cluster_name }}/admin.conf create clusterrolebinding permissive-binding --clusterrole=cluster-admin --user=admin --user=kubelet --group=system:serviceaccounts
+      register: rbac_raw
+      ignore_errors: true
+
+    - set_fact:
+        rbac_output: "{{ rbac_raw.stdout_lines }}"
+
+    - debug:
+        var: rbac_output
+      when: rbac_output is defined
+
+    - name: Install WeaveScope
+      command: kubectl --kubeconfig cfg/{{ cluster_name }}/admin.conf apply -f https://cloud.weave.works/launch/k8s/weavescope.yaml
+      register: weavescope_raw
+
+    - set_fact:
+        weavescope_output: "{{ weavescope_raw.stdout_lines }}"
 
     - debug:
         var: weavescope_output
-
+      when: weavescope_output is defined
 
 
 

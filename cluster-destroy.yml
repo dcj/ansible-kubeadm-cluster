@@ -29,10 +29,22 @@
         state: absent
         update_cache: true
       ignore_errors: true
+      when: ansible_distribution == 'Ubuntu'      
+
+    - name: Remove kubernetes repository (apt)
+      file:
+        path: /etc/apt/sources.list.d/kubernetes.list
+        state: absent
+      when: ansible_distribution == 'Ubuntu'
+
+    - name: Update apt cache
+      apt:
+        update_cache: true
 
     - name: Remove immutable bit on /var/lib/kubelet
       command: chattr -Ri /var/lib/kubelet/
       ignore_errors: true
+      when: ansible_distribution == 'Ubuntu'      
 
     - name: Remove kubernetes directorys
       file:
@@ -71,6 +83,17 @@
         state: absent
         update_cache: true
       ignore_errors: true
+      when: ansible_distribution == 'Ubuntu'
+      
+    - name: Remove kubernetes repository (apt)
+      file:
+        path: /etc/apt/sources.list.d/kubernetes.list
+        state: absent
+      when: ansible_distribution == 'Ubuntu'
+
+    - name: Update apt cache
+      apt:
+        update_cache: true      
 
     - name: Remove kubernetes directorys
       file:
