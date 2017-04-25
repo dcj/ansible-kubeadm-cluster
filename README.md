@@ -46,7 +46,7 @@ A sample Inventory file is included as ```cfg/INVENTORY-EXAMPLE```, but if you h
 After you have done this, you should be able to succesfully execute something like this:
 
 ```
-    ansible -m ping -e cluster_name=k8s_test
+    ansible k8s_test [-i $INVENTORY_FILE] -m ping
 ```
 
 And your master and node machines should respond.  
@@ -54,13 +54,13 @@ And your master and node machines should respond.
 Then test that you can operate on each of the child groups independently:
 
 ```
-    ansible -m ping -e cluster_name=k8s_test_master
+    ansible k8s_test_master [-i $INVENTORY_FILE] -m ping
 ```
 
 and
 
 ```
-    ansible -m ping -e cluster_name=k8s_test_node
+    ansible k8s_test_nodes [-i $INVENTORY_FILE] -m ping
 ```
 
 Don't bother proceeding until all the above work!
